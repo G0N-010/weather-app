@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Weather App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: url('weathr.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    h1 {
+      color: black;
+      font-size: 2.5em;
+    }
+
+    .input-container {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid gray;
+      width: 250px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: navy;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    #weather {
+      margin-top: 30px;
+      font-size: 18px;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: inline-block;
+    }
+
+    img {
+      width: 80px;
+      height: 80px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌤️ Weather App</h1>
+
+  <div class="input-container">
+    <input type="text" id="cityInput" placeholder="Enter city name">
+    <button onclick="getWeather()">Get Weather</button>
+  </div>
+
+  <div id="weather"></div>
+
+  <script>
+    function formatTime(unixTime, timezoneOffset) {
+      const localTime = new Date((unixTime + timezoneOffset) * 1000);
+      return localTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+
+    function getWeather() {
+      const city = document.getElementById('cityInput').value.trim();
+      const weatherDiv = document.getElementById('weather');
+
+      if (city === "") {
+        weatherDiv.innerText = "Please enter a city name.";
+        return;
+      }
+
+      weatherDiv.innerText = "Loading...";
+
+      const apiKey = '7893e2b907bb02500a68297445ebab63';
+      const currentURL = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+
+      fetch(currentURL)
+        .then(response => response.json())
+        .then(data => {
+          if (data.cod === 200) {
+            const iconCode = data.weather[0].icon;
+            const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+            const timezoneOffset = data.timezone;
+
+            const sunrise = formatTime(data.sys.sunrise, timezoneOffset);
+            const sunset = formatTime(data.sys.sunset, timezoneOffset);
+
+            weatherDiv.innerHTML = `
+              <h2>${data.name}, ${data.sys.country}</h2>
+              <img src="${iconUrl}" alt="${data.weather[0].description}">
+              <p><strong>Temperature:</strong> ${data.main.temp} °C</p>
+              <p><strong>Weather:</strong> ${data.weather[0].main}</p>
+              <p><strong>Description:</strong> ${data.weather[0].description}</p>
+              <p><strong>Humidity:</strong> ${data.main.humidity}%</p>
+              <p><strong>🌅 Sunrise:</strong> ${sunrise}</p>
+              <p><strong>🌇 Sunset:</strong> ${sunset}</p>
+            `;
+          } else {
+            weatherDiv.innerText = "City not found!";
+          }
+        })
+        .catch(error => {
+          weatherDiv.innerText = "Something went wrong.";
+        });
+    }
+
+    document.getElementById('cityInput').addEventListener('keyup', function(event) {
+      if (event.key === 'Enter') {
+        getWeather();
+      }
+    });
+  </script>
+
+</body>
+</html>
